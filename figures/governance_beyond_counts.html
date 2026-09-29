@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>What adoption counts leave unresolved - Infographic</title>
+<style>
+body{margin:0;background:#eef0f1;color:#26333c;font-family:Georgia,serif}main{max-width:1400px;margin:24px auto;background:white;padding:24px}#container{width:100%;height:620px;margin-top:-80px}.column-headings{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:20px 0 0;text-align:center;font:600 20px/1.4 "DejaVu Sans",sans-serif}.column-headings span{display:inline-block;padding:9px 24px;border-radius:30px}.counts-pill{background:#e8eff4;color:#27628C}.adoptions-pill{background:#f8eee8;color:#C36B32}nav{display:flex;justify-content:flex-end;padding:12px;gap:12px}button{padding:9px 16px;border:1px solid #71818c;background:white;cursor:pointer}details{padding:16px}textarea{box-sizing:border-box;width:100%;height:420px;font:14px/1.5 monospace}@media(max-width:800px){main{margin:0;padding:8px}#container{height:65vw;min-height:400px}}@media print{body,main{margin:0;padding:0;background:white}nav,details{display:none}}
+</style>
+<script src="https://unpkg.com/@antv/infographic@latest/dist/infographic.min.js"></script>
+</head>
+<body><main>
+<nav><button id="export">Export SVG</button></nav>
+<div class="column-headings"><div><span class="counts-pill">What counts hide</span></div><div><span class="adoptions-pill">What adoptions hide</span></div></div>
+<div id="container"></div>
+<details><summary>Edit infographic content</summary><textarea id="syntax">infographic ats-governance
+data
+  lists
+    - label Reviews without new Measures
+      value 7
+      icon mingcute/refresh-2-line
+      desc Seven plans reviewed in 2019; existing rules retained without new Measures.
+    - label Years awaiting legal effect
+      value 17
+      icon mingcute/time-line
+      desc Measure 15 (2009) still awaited entry into force on 5 September 2026.
+    - label Recovered revisions
+      value 4
+      icon mingcute/check-circle-line
+      desc Four 2022 plans retained contested wording and acquired legal effect.
+    - label Refuse became discourage
+      icon mingcute/edit-line
+      desc Resolution 5 (2007) changed the requested action, scope and impact criterion.
+theme
+  palette #27628C #C36B32 #27628C #C36B32
+  base
+    text
+      font-family DejaVu Sans
+</textarea><button id="redraw">Update preview</button></details>
+<pre id="svg-export" hidden></pre>
+</main>
+<script>
+AntVInfographic.registerTemplate("ats-governance", {design:{title:"default",structure:{type:"list-grid",columns:2,gap:24},items:[{type:"badge-card",width:360,height:105}]}});
+const graphic = new AntVInfographic.Infographic({container:'#container',width:'100%',height:'100%',editable:true});
+async function exportSVG(){
+  const original=await graphic.toDataURL({type:'svg'});
+  const raw=await (await fetch(original)).text();
+  const doc=new DOMParser().parseFromString(raw,'image/svg+xml');
+  const inner=doc.documentElement;
+  inner.setAttribute('x','0');inner.setAttribute('y','0');
+  inner.setAttribute('width','1400');inner.setAttribute('height','620');
+  const svg='<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="580" viewBox="0 0 1400 580">'
+    +'<rect width="1400" height="580" fill="white"/>'
+    +'<rect x="204" y="22" width="292" height="48" rx="24" fill="#e8eff4"/>'
+    +'<rect x="880" y="22" width="340" height="48" rx="24" fill="#f8eee8"/>'
+    +'<g font-family="DejaVu Sans,sans-serif" font-size="20" font-weight="600" text-anchor="middle">'
+    +'<text x="350" y="53" fill="#27628C">What counts hide</text>'
+    +'<text x="1050" y="53" fill="#C36B32">What adoptions hide</text></g>'
+    +new XMLSerializer().serializeToString(inner)+'</svg>';
+  return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+}
+async function render(){
+  graphic.render(document.getElementById('syntax').value);
+  await document.fonts.ready;
+  await new Promise(resolve=>setTimeout(resolve,1200));
+  const url=await exportSVG();
+  document.getElementById('svg-export').textContent=url;
+  document.documentElement.dataset.rendered='true';
+}
+document.getElementById('redraw').onclick=render;
+document.getElementById('export').onclick=async()=>{const a=document.createElement('a');a.href=await exportSVG();a.download='governance_beyond_counts.svg';a.click();};
+render().catch(error=>{document.getElementById('svg-export').textContent='ERROR: '+error.message;});
+</script>
+</body></html>

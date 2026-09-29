@@ -1,0 +1,43 @@
+# The environment the analysis and the figures actually run in.
+#
+# `environment.yml` in this directory pins `marker-env`, which is the OCR/marker
+# stage under `data/` -- a different environment for a different job. Nothing in
+# this repository described the analysis environment until now, which is how
+# `ruptures` came to be an undeclared dependency of two manuscript figures
+# (fig28, fig29) and `networkx` an undeclared dependency of the topology paper.
+#
+#   micromamba env create -f environment-analysis.yml
+#   micromamba run -n ultraplot-dev python3 -m pytest -q
+#
+# `run_pipeline_local.sh` routes every phase through this environment via
+# ENV_NAME, defaulting to `ultraplot-dev`. Running the pipeline under the system
+# python silently skips pyarrow, duckdb and ultraplot and looks like a broken
+# pipeline rather than a wrong interpreter.
+#
+# ultraplot is pinned to a development build, so it comes from git rather than
+# from a release; the exact commit is what produced the published figures.
+
+name: ultraplot-dev
+channels:
+  - conda-forge
+dependencies:
+  - python=3.13
+  - pandas=2.3.3
+  - numpy=2.2.6
+  - scipy=1.16.3
+  - matplotlib=3.9.4
+  # graph structure: build_topology.py, and the DAG checks in the test suite
+  - networkx=3.5
+  # parquet engine for atcm_inventory.py (document-summary.parquet)
+  - pyarrow=20.0.0
+  # atcm.db; build_atcm_db.py, fig22, tools/proxy_ats_queries.py
+  - duckdb=1.5.4
+  - pytest=8.3.5
+  - pip
+  - pip:
+      # PELT changepoint search behind fig28 and fig29 (@app:robustness)
+      - ruptures==1.1.10
+      # render the editable Draw.io panel embedded in Figure 1
+      - CairoSVG==2.9.0
+      # figure style; development build, not a release
+      - git+https://github.com/Ultraplot/ultraplot.git@e209e4afbc0402976cdd46c8cb7a19d6cacd4b6c
